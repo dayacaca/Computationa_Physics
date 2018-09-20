@@ -25,6 +25,8 @@ program LFrie
   real(kind=8) x0
   real(kind=8) sigma
   real(kind=8) courant
+  real(kind=8) norma
+  real(kind=8) error
 
   real(kind=8), allocatable, dimension (:) :: x
   real(kind=8), allocatable, dimension (:) :: u_e
@@ -35,6 +37,7 @@ program LFrie
   real(kind=8), allocatable, dimension (:) :: psi_n_p
   real(kind=8), allocatable, dimension (:) :: phi_n
   real(kind=8), allocatable, dimension (:) :: phi_n_p
+  real(kind=8), allocatable, dimension (:) :: error
   
   
 !!$ Reading  parameters of file datos.dat
@@ -58,7 +61,8 @@ program LFrie
   
   allocate(phi_n(0:Nx))
   allocate(phi_n_p(0:Nx))
-
+ allocate(error(0:Nx))
+ 
 !!$ Setting the spatial grid
 
   dx = ( xmax - xmin ) / dble( Nx ) !!$ Spatial resolution
@@ -74,9 +78,9 @@ program LFrie
 !!$ Initial data
   u_e = amp * exp( - ( x - x0 )**2 / sigma**2 ) + 1e-20
   pi_n = 0d0
-  psi_n =  -2*amp*((x-x0)/sigma**2) * exp( - ( x - x0 )**2 / sigma**2 ) 
-  phi_n = amp * exp( - ( x - x0 )**2 / sigma**2 )
-
+  psi_n =  -2*amp*((x-x0)/sigma**2) * exp( - ( x - x0 )**2 / sigma**2 )
+  phi_n = amp * exp( - ( x - x0 )**2 / sigma**2 ) 
+error=0d0
 !!$ Saving the initial stuff
 
   t = 0.0d0
@@ -85,7 +89,7 @@ program LFrie
   call save1Ddata(Nx,t,x,pi_n,'pi_n',0)
   call save1Ddata(Nx,t,x,psi_n,'psi_n',0)
   call save1Ddata(Nx,t,x,phi_n,'phi_n',0)
-
+ call save1Ddata(Nx,t,x,error,'error',0)
 
 !!$ Integration loop
 
@@ -99,13 +103,13 @@ program LFrie
   
    
   do i=1,Nx-1
-		pi_n(i)=0.5*(pi_n_p(i+1)+ pi_n_p(i+2) - 0.5*dt/dx)*(pi_n_p(i+1)-pi_n_p(i-1))
-		psi_n(i)= 0.5*(psi_n_p(i+1) + psi_n_p(i-1))- 0.5*(dt/dx)*(psi_n_p(i+1)-psi_n_p(i-1))
+		pi_n(i)=0.5*(pi_n_p(i+1)+ pi_n_p(i-1)) + 0.5*(dt/dx)*(psi_n_p(i+1)-psi_n_p(i-1))
+		psi_n(i)= 0.5*(psi_n_p(i+1) + psi_n_p(i-1))+ 0.5*(dt/dx)*(pi_n_p(i+1)-pi_n_p(i-1))
   end do
   
   
   !BV periódicas
-    !OJO se coloca condiciones a pi y psi, ya que aún no he calculado phi 
+  !OJO se coloca condiciones a pi y psi, ya que aún no he calculado phi 
   
     pi_n(Nx)=pi_n(1)
     pi_n(0)= pi_n(Nx-1) 	
@@ -121,20 +125,41 @@ program LFrie
 		phi_n(j)= phi_n_p(j)+ dt*pi_n(j)
     end do
      
-    
+   do i=0,Nx	
+       error(i)= u_e(i)-phi_n(i)
+    end do
     
     u_e = 0.5*amp *( exp( - ( x - x0 - t)**2 / sigma**2 ) + exp( - ( x - x0 + t)**2 / sigma**2 ) ) + 1e-20   
     call save1Ddata(Nx,t,x,u_e,'u_e',1)
     call save1Ddata(Nx,t,x,phi_n,'phi_n',1)
 	call save1Ddata(Nx,t,x,psi_n,'psi_n',1)
     call save1Ddata(Nx,t,x,pi_n,'pi_n',1)
-
+	call save1Ddata(Nx,t,x,error,'error',1)
+	
+	
+	do i=1,Nx
+	norma = (1/Nx)*sum(error)
+	end do 
+	
+	open(10,file='norma.x')
+	write(10,*)'norma.x', l,norma
+	close(10)
+	
   end do
 
 end program LFrie
 
 !!$ 
 !!$
+!subroutine error(u_e,pi_n)
+!implicit none
+!integer i, l
+!do i=1, Nt
+
+
+
+!end subroutine
+
 
 subroutine save1Ddata(Nx_,t_,xval,yval,base_name,first_index)
 
