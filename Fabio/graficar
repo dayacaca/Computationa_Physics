@@ -1,0 +1,6 @@
+comandos utiles 
+
+ set term gif animate delay 0.3
+set output 'psi.gif'
+do for[i=0:1000] {p 'u_e.x' index i u 1:2 w l, 'u_n.x' index i u 1:2 w l}
+
