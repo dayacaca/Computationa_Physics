@@ -25,7 +25,7 @@
   implicit none 
 
   integer i,l,m,j
-  integer N,d,code,Nx
+  integer N,d,code,Nx,ni
 
   REAL(kind=8) pii
   REAL(kind=8) suma
@@ -36,10 +36,13 @@
   real(kind=8) phi, dphi                                
   REAL(kind=8) xmax 
   REAL(kind=8) xmin   
-  REAL(kind=8) integrate
-  REAL(kind=8) intf
- ! REAL(kind=8) Phie
+  REAL(kind=8) g  ! ge
+  REAL(kind=8) f
+
+ !Phie
  ! REAL(kind=8) dPhie
+  REAL(kind=8) integral
+  REAL(kind=8) integralg
 
   REAL(kind=8), ALLOCATABLE, DIMENSION(:,:) :: A  ! matriz
   !REAL(kind=8), ALLOCATABLE, DIMENSION(:) :: x    ! puntos de colocación
@@ -53,6 +56,10 @@
 
   print *, 'order of Phi'
   read(*,*) N
+  print *
+
+  print *, 'intervalos de las integrales'
+  read(*,*) ni
   print *
   
   print *, 'Number of grid points'
@@ -81,20 +88,21 @@
 ! i -> corresponde al orden del chebychev
 ! l -> corresponde al orden del chebychev
  
- 
+
  do i=0,N
      do l=0,N
-      A(i,l) = integrate(j,i)
+      call simpsong(g,xmin, xmax,integralg,ni)
+      A(i,l) = integralg
      end do
   end do 
 
 ! :::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ! Aqui vamos a definir el vector b -> fuentes de la ecuación
-
+  
   do i=0,N
-   !     intf =(( xmax-  xmin)/6)*(f(i,xmin) +4*f(i,0.5*(xmax+xmin)) +f(i,xmax))
-        b(i) = intf(i)
+      call simpsonf(f,xmin, xmax,integral,ni)
+        b(i) = integral
   end do              
  
 ! :::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -102,7 +110,7 @@
   !print*, '=========================================='
 
  
-  !print*,'bvector',b(:)
+  print*,'bvector',b(:)
   !print*, '=========================================='
  ! print*,'A1l',A(1,:)
  ! print*,'A2l',A(2,:) 
@@ -127,7 +135,7 @@
      aa(l)=b(l)
   end do
 
- ! print*, 'aa', aa(:)   
+  print*, 'aa', aa(:)   
 
 ! Aquí para no confundir asociamos el vector b solución a un vector aa(i) que son 
 ! los coeficientes de la expasión de la solución y = suma an Tn(x)
@@ -147,15 +155,17 @@
 !      write(1,*) 'x      ','suma      ','exact       '
      do i=0,Nx 
        suma = 0.0d0 
+      ! ge=0.0d0
       ! Phie= 0.0d0 
       ! dPhie= 0.0d0 
      do l=0,N
        suma = suma + aa(l)*phi(l,XX(i))
       ! Phie= Phie+phi(l,XX(i))
       ! dPhie= dPhie + dphi(l,XX(i))
+     !  ge = ge+g(l,XX(i))
      end do
        error(i) = abs(exact(XX(i)) - suma)
-       write(1,*) XX(i),suma,exact(XX(i)),error(i)  !,Phie,dPhie
+       write(1,*) XX(i),suma,exact(XX(i)),error(i) !,Phie,dPhie
      end do
      close(1)
 
@@ -307,57 +317,83 @@
   end if 
   
  end FUNCTION dphi
-
-
-     
+   
 !===================================================================
 
 
- Real(kind=8) FUNCTION g(j,i,r)
+ Real(kind=8) FUNCTION g(m,r)
     implicit none 
-     integer i,j
+     integer i,j,m
      real(kind=8) r
      real(kind=8) dphi, phi
      real(kind=8) lambda
-  
+  do i=0,m
+    do j=0,m
          g = -dphi(j,r)*dphi(i,r) + lambda*phi(j,r)*phi(i,r)
-  
+    end do
+  end do
  end FUNCTION g 
 
-
- Real(kind=8) FUNCTION integrate(j,i)
- implicit none 
-     integer i, j
-    real(kind=8) g
-     Real(kind=8) xmax, xmin
-     xmax = 1.0d0
-     xmin = -1.0d0 
-   
-     integrate =(( xmax -  xmin)/6)*(g(j,i,xmin) +4*g(j,i,0.0d0) +g(j,i,xmax)) 
-
- end FUNCTION integrate
-
-
-
- Real(kind=8) FUNCTION f(r)
+ Real(kind=8) FUNCTION f(m,r)
     implicit none
-    real(kind=8) r
+    integer m
+    real(kind=8) r,phi
   
-     f = r*r
+     f = r*r*phi(m,r)
  end FUNCTION f
 
 
- Real(kind=8) FUNCTION intf(m)
-     implicit none
-     integer m
- REAL(kind=8) f,phi
- Real(kind=8) xmax, xmin
- xmax = 1.0d0
- xmin = -1.0d0 
 
- intf =((xmax-xmin)/6)*( f(xmin)*phi(m,xmin) + +4*(f(0.0d0)*phi(m,0.0d0)) &
-  + f(xmax)*phi(m,xmax) )
+Subroutine simpsonf(f,xmin,xmax,integral,ni)
 
-end FUNCTION intf
+implicit none
+REAL(kind=8) f, xmin, xmax, integral,s
+double precision h, x
+integer ni, i,m
 
+! if n is odd we add +1 to make it even
+if((ni/2)*2.ne.ni) ni=ni+1
 
+! loop over n (number of intervals)
+s = 0.0
+h = (xmax-xmin)/dfloat(ni)
+do i=2, ni-2, 2
+   x   = xmin+dfloat(i)*h
+   s = s + 2.0*f(m,x) + 4.0*f(m,x+h)
+end do
+
+  integral = (s + f(m,xmin) + f(m,xmax) + 4.0*f(m,xmin+h))*h/3.0
+
+return
+end subroutine simpsonf
+
+Subroutine simpsong(g,xmin, xmax,integralg,ni)
+!==========================================================
+! IN:
+! f   - Function to integrate (supplied by a user)
+! a	  - Lower limit of integration
+! b	  - Upper limit of integration
+! n   - number of intervals
+! OUT:
+! integral - Result of integration
+!==========================================================
+implicit none
+REAL(kind=8) g, xmin, xmax, integralg,s
+double precision h, x
+integer ni, i,m
+
+! if n is odd we add +1 to make it even
+if((ni/2)*2.ne.ni) ni=ni+1
+
+! loop over n (number of intervals)
+s = 0.0
+h = (xmax-xmin)/dfloat(ni)
+do i=2, ni-2, 2
+   x   = xmin+dfloat(i)*h
+   s = s + 2.0*g(m,x) + 4.0*g(m,x+h)
+end do
+
+integralg = (s + g(m,xmin) + g(m,xmax) + 4.0*g(m,xmin+h))*h/3.0
+
+return
+end subroutine simpsong
