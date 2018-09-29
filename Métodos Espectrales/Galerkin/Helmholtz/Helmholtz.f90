@@ -1,5 +1,4 @@
- 
-!**********************************************************************!         
+ !**********************************************************************!         
 !   F.D.Lora-Clavijo and A. Cruz-Osorio - IFM - UMSNH                  ! 
 !                                                                      !  
 !   THIS PROGRAM SOLVE Helmholtz EQUATION  -y''(x)+lamda*y(x)=f(x)     ! 
@@ -385,7 +384,7 @@ s = 0.0
 h = (xmax-xmin)/dfloat(ni)
 do i=2, ni-2, 2
    x   = xmin+dfloat(i)*h
-   s = s + 2.0*g(i,n,x) + 4.0*g(i,n,x+h)
+   s = s + 2.0*g(m,n,x) + 4.0*g(m,n,x+h)
 end do
 
 integralg = (s + g(m,n,xmin) + g(m,n,xmax) + 4.0*g(m,n,xmin+h))*h/3.0
