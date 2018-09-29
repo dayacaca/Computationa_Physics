@@ -1,0 +1,36 @@
+&BHtoy_Input
+
+! Driver Paramters
+! *************************
+
+res_num	           = 2
+nvars              = 3
+every_0Dt  	   = 1
+every_1Dt  	   = 10
+
+! Grid Parameters
+! **************************
+
+rmin 		   =  -1.0
+rmax 		   =   1.0
+Nrr 		   =   200
+
+! Evolution Parameters
+! **************************
+
+Ntt 		   = 2000
+courant 	   = 0.25
+
+! Wave Parameters
+!****************************
+
+amp                = 1.0
+r0                 = 0.0
+sigma              = 0.1
+
+! Time Integrator
+!****************************
+! Rk2, RK3, Rk4, ICN
+
+integrator         = 'RK4'
+/

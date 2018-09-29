@@ -52,9 +52,9 @@ call allocate
   do i=0,N
      do l=0,N
         if (i.eq.0.or.i.eq.N) then
-           A(i+1,l+1) = phi(l,x(i))
+           A(i+1,l+1) = cheby(l,x(i))
         else 
-           A(i+1,l+1) = ddphi(l,x(i))-4.0d0*dphi(l,x(i)) + 4.0d0*phi(l,x(i))
+           A(i+1,l+1) = ddcheby(l,x(i))-4.0d0*dcheby(l,x(i)) + 4.0d0*cheby(l,x(i))
         end if 
      end do
   end do 

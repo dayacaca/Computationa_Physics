@@ -3,7 +3,7 @@ module arreglos
 
 implicit none
 
-  integer i,l
+  integer i,l,j
   integer N,d,code,Nx
 real(kind=8), parameter :: pii = 4.0d0*ATAN(1.0d0)
 
@@ -11,7 +11,7 @@ real(kind=8), parameter :: pii = 4.0d0*ATAN(1.0d0)
 REAL(kind=8) suma
 REAL(kind=8) xmin, xmax, dx
 REAL(kind=8) nm2, nm1
-
+REAL(kind=8) lambda
 
 REAL(kind=8), ALLOCATABLE, DIMENSION(:,:) :: A ! --------------- arrays for matrix ---------------------
 REAL(kind=8), ALLOCATABLE, DIMENSION(:) :: x ! ---------arrays for puntos de colocación---------------

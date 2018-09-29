@@ -101,7 +101,8 @@ CONTAINS
  
   REAL(kind=8) r
 
-  exact =  exp(r)-((sinh(1.0d0))/(sinh(2.0d0)))*exp(2.0d0*r)-((4.0d0*exp(1.0d0))/(1+exp(2.0d0)))/4 
+  exact =  (-3.0d0/(8.0d0*(exp(2.0d0) + exp(-2.0d0))))*(exp(2.0d0*r) &
+        + exp(-2.0d0*r)) +(1.0d0/4.0d0)*r*r + (1.0d0/8.0d0)  
  
   end FUNCTION exact
 
@@ -112,19 +113,21 @@ CONTAINS
  
   REAL(kind=8) r
 
-  f = exp(r)-(4.0d0*exp(1.0d0))/(1+exp(2.0d0))  
+  f =  r*r  
  
   end FUNCTION f
-
+!===================================================================
+!Def. de la nueva base de pol. de tal forma que phi(-1)=phi(1)=0  
+!====================================================================
  Real(kind=8) FUNCTION phi(m,r)
 	implicit none 
     integer m
     real(kind=8) r
 	
-	if(m.eq.mod(m,0)) then
+	if(mod(m,2).eq.0) then
 	phi = cheby(m+2,r)-cheby(0,r)
-	else if (m.eq.mod(m,1)) then 
-    phi = cheby(m+2,r) - cheby(0,r)
+	else if (mod(m,2).eq.1) then 
+    phi = cheby(m+2,r) - cheby(1,r)
     end if
     
  end FUNCTION phi
@@ -134,26 +137,15 @@ CONTAINS
     integer m
     real(kind=8) r
 	
-	if(m.eq.mod(m,0)) then
+	if(mod(m,2).eq.0) then
 	dphi = dcheby(m+2,r)-dcheby(0,r)
-	else if (m.eq.mod(m,1)) then 
-    dphi = dcheby(m+2,r) - dcheby(0,r)
+	else if (mod(m,2).eq.1) then 
+    dphi = dcheby(m+2,r) - dcheby(1,r)
     end if 
   
  end FUNCTION dphi
 
- Real(kind=8) FUNCTION ddphi(m,r)
-	implicit none 
-    integer m
-    real(kind=8) r
-	
-	if(m.eq.mod(m,0)) then
-		ddphi = ddcheby(m+2,r)-ddcheby(0,r)
-	else if (m.eq.mod(m,1)) then
-		ddphi = ddcheby(m+2,r) - ddcheby(0,r)   
-	end if 
-	
- end FUNCTION ddphi
+
 
 end module chebys
 

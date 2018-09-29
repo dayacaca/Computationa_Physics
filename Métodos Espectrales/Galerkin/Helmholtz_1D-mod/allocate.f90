@@ -5,7 +5,7 @@ use arreglos
 implicit none
 
 open(10,file='datos.dat')
-read(10,*) N,Nx
+read(10,*) N,Nx,lambda
 close(10)
 
 ALLOCATE(A(1:N+1,1:N+1))
