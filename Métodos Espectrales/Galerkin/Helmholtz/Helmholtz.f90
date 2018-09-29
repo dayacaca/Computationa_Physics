@@ -24,7 +24,7 @@
 
   implicit none 
 
-  integer i,l,m,j
+  integer i,l
   integer N,d,code,Nx,ni
 
   REAL(kind=8) pii
@@ -33,19 +33,18 @@
   REAL(kind=8) lambda
   REAL(kind=8) dx
   REAL(kind=8) nm2, nm1
-  real(kind=8) phi, dphi                                
+  real(kind=8) phi                              
   REAL(kind=8) xmax 
   REAL(kind=8) xmin   
   REAL(kind=8) g  ! ge
   REAL(kind=8) f
 
- !Phie
- ! REAL(kind=8) dPhie
+
   REAL(kind=8) integral
   REAL(kind=8) integralg
 
   REAL(kind=8), ALLOCATABLE, DIMENSION(:,:) :: A  ! matriz
-  !REAL(kind=8), ALLOCATABLE, DIMENSION(:) :: x    ! puntos de colocación
+ 
   REAL(kind=8), ALLOCATABLE, DIMENSION(:) :: b    ! vector fuente 
   REAL(kind=8), ALLOCATABLE, DIMENSION(:) :: aa   ! vector solucion, coeficientes de la expansión
   integer, ALLOCATABLE, DIMENSION(:) :: indx
@@ -91,7 +90,7 @@
 
  do i=0,N
      do l=0,N
-      call simpsong(g,xmin, xmax,integralg,ni)
+      call simpsong(g,xmin,xmax,integralg,ni)
       A(i,l) = integralg
      end do
   end do 
@@ -101,7 +100,7 @@
 ! Aqui vamos a definir el vector b -> fuentes de la ecuación
   
   do i=0,N
-      call simpsonf(f,xmin, xmax,integral,ni)
+      call simpsonf(f,xmin,xmax,integral,ni)
         b(i) = integral
   end do              
  
@@ -321,17 +320,15 @@
 !===================================================================
 
 
- Real(kind=8) FUNCTION g(m,r)
+ Real(kind=8) FUNCTION g(i,j,r)
     implicit none 
-     integer i,j,m
+     integer i,j
      real(kind=8) r
      real(kind=8) dphi, phi
      real(kind=8) lambda
-  do i=0,m
-    do j=0,m
+
          g = -dphi(j,r)*dphi(i,r) + lambda*phi(j,r)*phi(i,r)
-    end do
-  end do
+
  end FUNCTION g 
 
  Real(kind=8) FUNCTION f(m,r)
@@ -341,8 +338,6 @@
   
      f = r*r*phi(m,r)
  end FUNCTION f
-
-
 
 Subroutine simpsonf(f,xmin,xmax,integral,ni)
 
@@ -380,7 +375,7 @@ Subroutine simpsong(g,xmin, xmax,integralg,ni)
 implicit none
 REAL(kind=8) g, xmin, xmax, integralg,s
 double precision h, x
-integer ni, i,m
+integer ni, i,m,n
 
 ! if n is odd we add +1 to make it even
 if((ni/2)*2.ne.ni) ni=ni+1
@@ -390,10 +385,10 @@ s = 0.0
 h = (xmax-xmin)/dfloat(ni)
 do i=2, ni-2, 2
    x   = xmin+dfloat(i)*h
-   s = s + 2.0*g(m,x) + 4.0*g(m,x+h)
+   s = s + 2.0*g(i,n,x) + 4.0*g(i,n,x+h)
 end do
 
-integralg = (s + g(m,xmin) + g(m,xmax) + 4.0*g(m,xmin+h))*h/3.0
+integralg = (s + g(m,n,xmin) + g(m,n,xmax) + 4.0*g(m,n,xmin+h))*h/3.0
 
 return
 end subroutine simpsong
