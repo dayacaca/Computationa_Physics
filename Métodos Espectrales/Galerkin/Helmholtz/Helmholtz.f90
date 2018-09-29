@@ -10,6 +10,12 @@
 !   with volume chemical reactions of the first order, lambda > 0                  !
 !                                                                     
 !**********************************************************************!
+!=======================================================================
+! Edited program 												                                    =
+! Purpose: Program modudalize for Darly Y. Castro to learn Galerkin Method  =
+
+!=======================================================================
+
 
   program Helmholtz
 
