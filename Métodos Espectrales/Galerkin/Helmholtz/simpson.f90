@@ -9,7 +9,7 @@ module simpson
   integer  j,m
   real(kind=8)  r
   real(kind=8)  cheby0,cheby1,chebyn
-  real(kind=8)  phi2n, phi2n_1
+ ! real(kind=8)  phi2n, phi2n_1
   cheby0 = 1.0d0
   cheby1 = r 
 
