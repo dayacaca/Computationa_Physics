@@ -10,8 +10,8 @@
 !                                                                     
 !**********************************************************************!
 !=======================================================================
-! Edited program 												                                    =
-! Purpose: Program modudalize for Darly Y. Castro to learn Galerkin Method  =
+! Edited program 	for Darly Y. Castro					                                   
+! Purpose: Galerkin Method   
 
 !=======================================================================
 
@@ -24,7 +24,7 @@
   implicit none 
 
   integer i,l
-  integer N,d,code,Nx,ni
+  integer N,d,code,Nx
 
   REAL(kind=8) pii
   REAL(kind=8) suma
@@ -32,15 +32,15 @@
   REAL(kind=8) lambda
   REAL(kind=8) dx
   REAL(kind=8) nm2, nm1
-  real(kind=8) phi                              
+  real(kind=8) phi,dphi                            
   REAL(kind=8) xmax 
   REAL(kind=8) xmin   
   REAL(kind=8) g  ! ge
   REAL(kind=8) f
 
 
-  REAL(kind=8) integral
-  REAL(kind=8) integralg
+ ! REAL(kind=8) integral
+!REAL(kind=8) integralg
 
   REAL(kind=8), ALLOCATABLE, DIMENSION(:,:) :: A  ! matriz
  
@@ -56,9 +56,9 @@
   read(*,*) N
   print *
 
-  print *, 'intervalos de las integrales'
-  read(*,*) ni
-  print *
+!  print *, 'intervalos de las integrales'
+!  read(*,*) ni
+!  print *
   
   print *, 'Number of grid points'
   read(*,*) Nx
@@ -89,28 +89,32 @@
 
  do i=0,N
      do l=0,N
-      call simpsong(g,xmin,xmax,integralg,ni)
-      A(i,l) = integralg
+      !call simpsong(g,xmin,xmax,integralg,ni)
+      A(i+1,l+1) = (xmax-xmin)/(6.0d0)*(-dphi(l,xmin)*dphi(i,xmin) + lambda*phi(l,xmin)*phi(i,xmin) +&
+      4.0d0*(-dphi(l,(xmin-xmax)/2.0d0)*dphi(i,(xmin-xmax)/2.0d0) + lambda*phi(l,(xmin-xmax)/2.0d0)*phi(i,(xmin-xmax)/2.0d0))-&
+      dphi(l,xmax)*dphi(i,xmax) + lambda*phi(l,xmax)*phi(i,xmax))
      end do
   end do 
-
+!  print*, A(0,0),A(0,1),A(1,1),A(2,2),A(3,3)
 ! :::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ! Aqui vamos a definir el vector b -> fuentes de la ecuación
   
   do i=0,N
-      call simpsonf(f,xmin,xmax,integral,ni)
-        b(i) = integral
+     ! call simpsonf(f,xmin,xmax,integral,ni)
+        b(i+1) = (xmax-xmin)/(6.0d0)*( xmin*xmin*phi(i,xmin) +&
+        4.0d0*((xmin-xmax)/2.0d0*(xmin-xmax)/2.0d0*phi(i,(xmin-xmax)/2.0d0))+&
+         xmax*xmax*phi(i,xmax))
   end do              
- 
+ ! print*, b(0),b(1)
 ! :::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
   !print*, '=========================================='
 
  
-  print*,'bvector',b(:)
+ ! print*,'bvector',b(:)
   !print*, '=========================================='
- ! print*,'A1l',A(1,:)
+  print*,'A1l',A(1,:)
  ! print*,'A2l',A(2,:) 
  ! print*,'A3l',A(3,:)
   !print*,'A4l',A(4,:)
@@ -133,7 +137,7 @@
      aa(l)=b(l)
   end do
 
-  print*, 'aa', aa(:)   
+ ! print*, 'aa', aa(:)   
 
 ! Aquí para no confundir asociamos el vector b solución a un vector aa(i) que son 
 ! los coeficientes de la expasión de la solución y = suma an Tn(x)
@@ -171,7 +175,7 @@
 
      nm1 = 0.0d0
      nm2 = 0.0d0
-     do i=1,Nx
+    do i=1,Nx
       nm1 = nm1 + 0.5D0*(abs(error(i-1)) + abs(error(i)))*dx
       nm2 = nm2 + 0.5D0*(error(i-1)**2 + error(i)**2)*dx
     end do 
@@ -296,7 +300,7 @@
   
   if(mod(m,2).eq.0) then
     phi = cheby(m+2,r)-cheby(0,r)
-  else if (mod(m,2).eq.1) then 
+  else if (mod(m,2).eq.1) then
     phi = cheby(m+2,r) - cheby(1,r)
   end if
   
@@ -319,14 +323,14 @@
 !===================================================================
 
 
- Real(kind=8) FUNCTION g(i,j,r)
+ Real(kind=8) FUNCTION g(l,i,r)
     implicit none 
-     integer i,j
+     integer i,l
      real(kind=8) r
      real(kind=8) dphi, phi
      real(kind=8) lambda
 
-         g = -dphi(j,r)*dphi(i,r) + lambda*phi(j,r)*phi(i,r)
+    g = -dphi(l,r)*dphi(i,r) + lambda*phi(l,r)*phi(i,r)
 
  end FUNCTION g 
 
@@ -338,56 +342,3 @@
      f = r*r*phi(m,r)
  end FUNCTION f
 
-Subroutine simpsonf(f,xmin,xmax,integral,ni)
-
-implicit none
-REAL(kind=8) f, xmin, xmax, integral,s
-double precision h, x
-integer ni, i,m
-
-! if n is odd we add +1 to make it even
-if((ni/2)*2.ne.ni) ni=ni+1
-
-! loop over n (number of intervals)
-s = 0.0
-h = (xmax-xmin)/dfloat(ni)
-do i=2, ni-2, 2
-   x   = xmin+dfloat(i)*h
-   s = s + 2.0*f(m,x) + 4.0*f(m,x+h)
-end do
-
-  integral = (s + f(m,xmin) + f(m,xmax) + 4.0*f(m,xmin+h))*h/3.0
-
-return
-end subroutine simpsonf
-
-Subroutine simpsong(g,xmin, xmax,integralg,ni)
-!==========================================================
-! IN:
-! f   - Function to integrate (supplied by a user)
-! a	  - Lower limit of integration
-! b	  - Upper limit of integration
-! n   - number of intervals
-! OUT:
-! integral - Result of integration
-!==========================================================
-implicit none
-REAL(kind=8) g, xmin, xmax, integralg,s
-double precision h, x
-integer ni, i,m,n
-
-! if n is odd we add +1 to make it even
-if((ni/2)*2.ne.ni) ni=ni+1
-
-! loop over n (number of intervals)
-s = 0.0
-h = (xmax-xmin)/dfloat(ni)
-do i=2, ni-2, 2
-   x   = xmin+dfloat(i)*h
-   s = s + 2.0*g(m,n,x) + 4.0*g(m,n,x+h)
-end do
-
-integralg = (s + g(m,n,xmin) + g(m,n,xmax) + 4.0*g(m,n,xmin+h))*h/3.0
-
-return
-end subroutine simpsong
