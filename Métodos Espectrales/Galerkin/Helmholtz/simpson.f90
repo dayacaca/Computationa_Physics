@@ -147,28 +147,4 @@ Real(kind=8) FUNCTION f(m,r)
    f = r*r*phi(m,r)
 end FUNCTION f
 
-
-Subroutine simpsonf(f,m,xmin,xmax,integral,ni)
-implicit none
-REAL(kind=8) f, xmin, xmax, integral,s
-double precision h, x
-integer ni, i,m
-
-! if n is odd we add +1 to make it even
-if((ni/2)*2.ne.ni) ni=ni+1
-
-! loop over n (number of intervals)
-s = 0.0
-h = (xmax-xmin)/dfloat(ni)
-do i=2, ni-2, 2
-   x   = xmin+dfloat(i)*h
-   s = s + 2.0*f(m,x) + 4.0*f(m,x+h)
-end do
-
-  integral = (s + f(m,xmin) + f(m,xmax) + 4.0*f(m,xmin+h))*h/3.0
-
-return
-end subroutine simpsonf
-
-
 end module simpson

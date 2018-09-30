@@ -24,7 +24,7 @@
   
     implicit none 
   
-    integer i,l,m
+    integer i,l,m,k
     integer N,d,code,Nx,ni
   
     REAL(kind=8) pii
@@ -38,7 +38,7 @@
     REAL(kind=8) xmin   
     !REAL(kind=8) g  
     !REAL(kind=8) f
-  
+    double precision s,h,x
    !Phie
    ! REAL(kind=8) dPhie
     REAL(kind=8) integral
@@ -91,7 +91,19 @@
     
    do i=0,N
        do l=0,N 
-        call simpsong(g,i,l,xmin, xmax,integralg,ni)
+        integralg=0.0d0
+
+        if((ni/2)*2.ne.ni) ni=ni+1
+
+        ! loop over n (number of intervals)
+        s = 0.0
+        h = (xmax-xmin)/dfloat(ni)
+        do k=2, ni-2, 2
+           x   = xmin+dfloat(k)*h
+           s = s + 2.0*g(i,l,x) + 4.0*g(i,l,x+h)
+        end do
+
+        integralg = (s + g(i,l,xmin) + g(i,l,xmax) + 4.0*g(i,l,xmin+h))*h/3.0d0
         A(l+1,i+1) = integralg
        end do
     end do 
@@ -101,7 +113,16 @@
   ! Aqui vamos a definir el vector b -> fuentes de la ecuación
     
     do m=0,N
-      call simpsonf(f,m,xmin,xmax,integral,ni)
+      integral=0.0d0
+      if((ni/2)*2.ne.ni) ni=ni+1
+      s = 0.0
+      h = (xmax-xmin)/dfloat(ni)
+
+         do k=2, ni-2, 2
+                x   = xmin+dfloat(k)*h
+                s = s + 2.0*f(m,x) + 4.0*f(m,x+h)
+         end do
+         integral = (s + f(m,xmin) + f(m,xmax) + 4.0*f(m,xmin+h))*h/3.0
           b(m+1) = integral
     end do              
     
