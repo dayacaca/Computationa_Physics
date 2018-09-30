@@ -148,7 +148,7 @@ Real(kind=8) FUNCTION f(m,r)
 end FUNCTION f
 
 
-Subroutine simpsonf(f,xmin,xmax,integral,ni)
+Subroutine simpsonf(f,m,xmin,xmax,integral,ni)
 implicit none
 REAL(kind=8) f, xmin, xmax, integral,s
 double precision h, x
@@ -170,24 +170,5 @@ end do
 return
 end subroutine simpsonf
 
-Subroutine simpsong(g,xmin, xmax,integralg,ni)
-implicit none
-REAL(kind=8) g, xmin, xmax,s, integralg
-double precision h, x
-integer ni, i, l,j
 
-! if n is odd we add +1 to make it even
-if((ni/2)*2.ne.ni) ni=ni+1
-
-! loop over n (number of intervals)
-s = 0.0
-h = (xmax-xmin)/dfloat(ni)
-do l=2, ni-2, 2
-   x   = xmin+dfloat(l)*h
-   s = s + 2.0*g(i,j,x) + 4.0*g(i,j,x+h)
-end do
-
-integralg = (s + g(i,j,xmin) + g(i,j,xmax) + 4.0*g(i,j,xmin+h))*h/3.0
-
-end subroutine simpsong
 end module simpson

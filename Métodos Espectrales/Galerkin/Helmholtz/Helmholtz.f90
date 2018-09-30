@@ -24,7 +24,7 @@
   
     implicit none 
   
-    integer i,l
+    integer i,l,m
     integer N,d,code,Nx,ni
   
     REAL(kind=8) pii
@@ -88,20 +88,21 @@
   ! i -> corresponde al orden del chebychev
   ! l -> corresponde al orden del chebychev
    
-    call simpsong(g,xmin, xmax,integralg,ni)
+    
    do i=0,N
-       do l=0,N
-        A(i+1,l+1) = integralg
+       do l=0,N 
+        call simpsong(g,i,l,xmin, xmax,integralg,ni)
+        A(l+1,i+1) = integralg
        end do
     end do 
   
   ! :::::::::::::::::::::::::::::::::::::::::::::::::::::
   
   ! Aqui vamos a definir el vector b -> fuentes de la ecuación
-    call simpsonf(f,xmin, xmax,integral,ni)
-    do i=0,N
-          b(i+1) = integral
-          print*, integral
+    
+    do m=0,N
+      call simpsonf(f,m,xmin,xmax,integral,ni)
+          b(m+1) = integral
     end do              
     
 
