@@ -19,7 +19,7 @@
   program Helmholtz
  
     use LU
-    use simpson
+    !use simpson
     !use simpsong
   
     implicit none 
@@ -29,16 +29,16 @@
   
     REAL(kind=8) pii
     REAL(kind=8) suma
-    !REAL(kind=8) exact
+    REAL(kind=8) exact
     REAL(kind=8) lambda
     REAL(kind=8) dx
     REAL(kind=8) nm2, nm1
-    !real(kind=8) phi, dphi                                
+    real(kind=8) phi, dphi                                
     REAL(kind=8) xmax 
     REAL(kind=8) xmin   
-    !REAL(kind=8) g  
-    !REAL(kind=8) f
-    double precision s,h,x
+    REAL(kind=8) g  
+    REAL(kind=8) f
+    REAL(kind=8) s,h,x
    !Phie
    ! REAL(kind=8) dPhie
     REAL(kind=8) integral
@@ -100,7 +100,7 @@
         h = (xmax-xmin)/dfloat(ni)
         do k=2, ni-2, 2
            x   = xmin+dfloat(k)*h
-           s = s + 2.0*g(i,l,x) + 4.0*g(i,l,x+h)
+           s = s + 2.0d0*g(i,l,x) + 4.0d0*g(i,l,x+h)
         end do
 
         integralg = (s + g(i,l,xmin) + g(i,l,xmax) + 4.0*g(i,l,xmin+h))*h/3.0d0
@@ -117,13 +117,12 @@
       if((ni/2)*2.ne.ni) ni=ni+1
       s = 0.0
       h = (xmax-xmin)/dfloat(ni)
-
-         do k=2, ni-2, 2
+        do k=2, ni-2, 2
                 x   = xmin+dfloat(k)*h
-                s = s + 2.0*f(m,x) + 4.0*f(m,x+h)
+                s = s + 2.0d0*f(m,x) + 4.0d0*f(m,x+h)
          end do
-         integral = (s + f(m,xmin) + f(m,xmax) + 4.0*f(m,xmin+h))*h/3.0
-          b(m+1) = integral
+      integral = (s + f(m,xmin) + f(m,xmax) + 4.0d0*f(m,xmin+h))*h/3.0d0
+      b(m+1) = integral
     end do              
     
 
@@ -134,7 +133,7 @@
    
    ! print*,'bvector',b(:)
     !print*, '=========================================='
-    print*,'A1l',A(1,:)
+   ! print*,'A1l',A(1,:)
    ! print*,'A2l',A(2,:) 
    ! print*,'A3l',A(3,:)
     !print*,'A4l',A(4,:)
@@ -166,31 +165,25 @@
   ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
    
   ! Salvando la solución
-  
-           dx = (xmax - xmin)/dble(Nx)
-  
-           do i=0,Nx
-              XX(i) = xmin + dble(i)*dx
-           end do
-  
-       open(1,file='Solution.dat') 
-  !      write(1,*) 'x      ','suma      ','exact       '
-       do i=0,Nx 
-         suma = 0.0d0 
-        ! ge=0.0d0
-        ! Phie= 0.0d0 
-        ! dPhie= 0.0d0 
-       do l=0,N
+ 
+    dx = (xmax - xmin)/dble(Nx)
+
+    do i=0,Nx
+       XX(i) = xmin + dble(i)*dx
+    end do
+
+     open(1,file='Solution.dat') 
+          !      write(1,*) 'x      ','suma      ','exact       '
+      do i=0,Nx 
+        suma = 0.0d0 
+        do l=0,N
+         !suma = suma + aa(l)*cheby(l,XX(i)) 
          suma = suma + aa(l)*phi(l,XX(i))
-        ! Phie= Phie+phi(l,XX(i))
-        ! dPhie= dPhie + dphi(l,XX(i))
-       !  ge = ge+g(l,XX(i))
-       end do
-         error(i) = abs(exact(XX(i)) - suma)
-         write(1,*) XX(i),suma,exact(XX(i)),error(i) !,Phie,dPhie
-       end do
-       close(1)
-  
+        end do
+       error(i) = abs(exact(XX(i)) - suma)
+       write(1,*) XX(i),suma,exact(XX(i)),error(i)
+      end do
+    close(1)
   ! :::::::::::::::::::::::::::::::::::::
   
        nm1 = 0.0d0
@@ -213,4 +206,160 @@
 
      
   !===================================================================
+    Real (kind=8) FUNCTION cheby(m,r)
+
+    implicit none
   
+    integer  j,m
+    real(kind=8)  r
+    real(kind=8)  cheby0,cheby1,chebyn
+    
+    cheby0 = 1.0d0
+    cheby1 = r 
+  
+    if(m.eq.0) then
+      cheby = cheby0
+    else if(m.eq.1) then 
+      cheby = cheby1 
+    else if(m.ge.2) then
+      do j=2,m
+         chebyn = 2.0d0*r*cheby1 - cheby0
+         cheby0 = cheby1
+         cheby1 = chebyn
+      end do
+         cheby = chebyn
+    end if
+   
+   end FUNCTION cheby
+  
+  ! --------------------------------------
+  ! defining firts Chebychev derivatives
+   
+    Real (kind=8) FUNCTION dcheby(m,r)
+    implicit none
+  
+    integer j,m
+  
+    real(kind=8) r
+    real(kind=8) dcheby0,dcheby1,dchebyn
+    real(kind=8) cheby  
+  
+    dcheby0 = 0.0d0
+    dcheby1 = 1.0d0 
+  
+    if(m.eq.0) then
+      dcheby = dcheby0
+    else if(m.eq.1) then 
+      dcheby = dcheby1 
+    else if(m.ge.2) then
+      do j=2,m
+     dchebyn = 2.0*cheby(j-1,r) + 2.0*r*dcheby1 - dcheby0
+     dcheby0 = dcheby1
+     dcheby1 = dchebyn
+      end do
+     dcheby = dchebyn
+    end if
+  
+   end FUNCTION dcheby
+  
+  ! --------------------------------------
+  ! defining second Chebychev derivatives
+   
+    Real (kind=8) FUNCTION ddcheby(m,r)
+    implicit none
+  
+    integer j,m
+  
+    real(kind=8) r
+    real(kind=8) ddcheby0,ddcheby1,ddchebyn
+    real(kind=8) dcheby  
+  
+    ddcheby0 = 0.0d0
+    ddcheby1 = 0.0d0 
+  
+    if(m.eq.0) then
+      ddcheby = ddcheby0
+    else if(m.eq.1) then 
+      ddcheby = ddcheby1 
+    else if(m.ge.2) then
+      do j=2,m
+     ddchebyn = 4.0*dcheby(j-1,r)+2.0*r*ddcheby1 - ddcheby0;
+     ddcheby0 = ddcheby1
+     ddcheby1 = ddchebyn
+      end do
+         ddcheby = ddchebyn
+    end if
+  
+   end FUNCTION ddcheby
+  
+  ! ======================
+  
+   Real(kind=8) FUNCTION exact(r)
+
+   implicit none
+  
+   REAL(kind=8) r
+ 
+   exact = (-3.0d0/(8.0d0*(exp(2.0d0) + exp(-2.0d0))))*(exp(2.0d0*r) &
+         + exp(-2.0d0*r)) +(1.0d0/4.0d0)*r*r + (1.0d0/8.0d0)  
+  
+   end FUNCTION exact
+ 
+  
+  ! ======================
+  
+  !===================================================================
+  !Def. de la nueva base de pol. de tal forma que phi(-1)=phi(1)=0  
+  !====================================================================
+   Real (kind=8) FUNCTION phi(m,r)
+  
+  implicit none
+
+  integer m
+
+  real(kind=8) r
+  real(kind=8) cheby
+
+  if(mod(m,2).eq.0) then
+    phi=cheby(m+2,r)-cheby(0,r)
+  else if(mod(m,2).eq.1) then
+    phi=cheby(m+2,r)-cheby(1,r)
+  end if
+  
+  end FUNCTION phi 
+
+  
+  Real (kind=8) FUNCTION dphi(m,r)
+  
+  implicit none
+
+  integer m
+
+  real(kind=8) r
+  real(kind=8) dcheby
+
+  if(mod(m,2).eq.0) then
+    dphi=dcheby(m+2,r)-dcheby(0,r)
+  else if(mod(m,2).eq.1) then
+    dphi=dcheby(m+2,r)-dcheby(1,r)
+  end if
+  
+  end FUNCTION dphi
+
+
+   Real(kind=8) FUNCTION g(i,j,r)
+    implicit none 
+     integer i,j,lambda
+     real(kind=8) r
+     real(kind=8) dphi, phi
+         g= dphi(i,r)*dphi(j,r) + lambda*phi(i,r)*phi(j,r)
+  
+  end FUNCTION g 
+  
+  Real(kind=8) FUNCTION f(m,r)
+    implicit none
+    integer m
+    real(kind=8) r,phi
+  
+     f = r*r*phi(m,r)
+  end FUNCTION f
